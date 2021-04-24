@@ -1,2 +1,2 @@
-# conky-folding-home-status
+# conky-folding-at-home-status
 Lua script for displaying Folding@Home status information in Conky
