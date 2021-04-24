@@ -1,4 +1,4 @@
-# conky-folding-at-home-status
+# conky-FoldingAtHome-status
 Lua script for displaying Folding@Home status information in Conky
 
 Retrieves current work unit folding status information from a running Folding@Home client and makes formatted values selected from that information available for display in Conky.
