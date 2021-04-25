@@ -13,7 +13,13 @@ Retrieves current work unit folding status information from a running Folding@Ho
 
 ![Screenshot_2021-04-23_21-13-39](https://user-images.githubusercontent.com/17618397/115942795-ea125480-a479-11eb-96a3-86e4c22a0456.png)
 
-The information shown above includes project, percent done, and time remaining. If the FAHClient is paused, a status indication will be displayed with the project as...
+The information shown above includes project, percent done, and time remaining. The symbol `☌` (Unicode UTF-16: 0x260C) is the alchemical symbol for "day" and is displayed when the remaining time is a day or more.
+
+When the remaining time is less than a day, it will be shown in hours. For example...
+
+![Screenshot_2021-04-24_21-00-37](https://user-images.githubusercontent.com/17618397/115976957-fc0afa80-a540-11eb-8f49-fa01b97019cc.png)
+
+If the FAHClient is paused, a status indication will be displayed with the project as...
 
 ![Screenshot_2021-04-23_22-01-33](https://user-images.githubusercontent.com/17618397/115943696-83903500-a47f-11eb-9b6e-757eca8014bd.png)
 
