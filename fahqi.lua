@@ -4,8 +4,7 @@ Folding@Home Queue Information data parser for conky
 
 Usage:
 - The Folding@Home project packages should be installed and FAHClient
-  running, as the script gets information from a running FAHClient
-  instance via telnet
+  running, as the script gets information from a running FAHClient instance
 - Add fahqi.lua to a load_lua line in your .conkyrc file
 - Add a line such as the following to your conky configuration file:
     ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project} ${lua_parse conky_fah_status}
@@ -21,7 +20,7 @@ Note:
   on the line following the comment '-- set symbol for "day"'.
   
 Note — To Add Other Data Values:
-  1) In a terminal, run `$ { echo "queue-info"; sleep 1; } | telnet localhost 36330`
+  1) In a terminal, run `FAHClient --send-command queue-info`
   2) Examine the output to find the keys for values of interest
   3) Add the keys to the `keys = {...}` sequence
   4) Add a function for each value to be displayed
@@ -57,7 +56,7 @@ Note — To Add Other Data Values:
   at https://github.com/FoldingAtHome/fah-control/wiki/3rd-party-FAHClient-API.
 --]]
 keys = {"project", "percentdone", "state", "eta"}
-info = {"0", "0.0", "Loading...", "00:00:00"}
+info = {"0", "0.0", "LOADING", "00:00:00"}
 iter = 1
 function conky_load_fah_queue_info()
     if conky_window == nil then
@@ -66,7 +65,11 @@ function conky_load_fah_queue_info()
     
     if iter == 5 then 
 
-	cmd = '{ echo "queue-info"; sleep 1; } | telnet localhost 36330'
+	-- cmd = '{ echo "queue-info"; sleep 1; } | telnet localhost 36330'
+
+	-- A more direct info request than telnet, noted at
+	-- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
+	cmd = 'FAHClient --send-command queue-info'
 
 	local f = assert(io.popen(cmd, 'r'))
 	local qi = assert(f:read('a'))
