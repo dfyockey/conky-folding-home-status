@@ -1,31 +1,25 @@
 --[[
 Folding@Home Queue Information data parser for conky
-  - Functionally completed 20 October 2020
+  - Functionally completed for single slot display on 20 October 2020
 
 Usage:
 - The Folding@Home project packages should be installed and FAHClient
   running, as the script gets information from a running FAHClient instance
 - Add fahqi.lua to a load_lua line in your .conkyrc file
-- Add a line such as the following to your conky configuration file:
-    ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project} ${lua_parse conky_fah_status}
+- For display of single slot status, add a line such as the following to
+  your conky configuration file:
+    ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
 
-Note:
-  The alchemical symbol for "day" (Unicode UTF-16: 0x260C) is displayed
-  when the time remaining in a work unit is a day or more. This symbol
-  is not available in all font families; consequently, the script
-  outputs display info to conky that changes the font to FreeSerif and
-  then back to the default font. The user may wish to change the font,
-  font size, and/or symbol to represent "day" to better blend the script
-  output with with the particular conky design being used. This is set
-  on the line following the comment '-- set symbol for "day"'.
-  
 Note — To Add Other Data Values:
   1) In a terminal, run `FAHClient --send-command queue-info`
   2) Examine the output to find the keys for values of interest
   3) Add the keys to the `keys = {...}` sequence
-  4) Add a function for each value to be displayed
-  5) Add a `${lua <function_name>}` object for each value to be displayed to
-     the conky configuration file
+  4) Modify conky_load_fah_queue_info() to process the value and load it
+     into the info table, as needed
+  5) Add a conky display function and/or a formatting utility function
+     for each value to be displayed, as needed
+  6) Add a `${lua <function_name>}` object for each value to be
+     displayed to the conky configuration file, as needed
   
 # MIT License
 #
@@ -56,148 +50,184 @@ Note — To Add Other Data Values:
   at https://github.com/FoldingAtHome/fah-control/wiki/3rd-party-FAHClient-API.
 --]]
 keys = {"project", "percentdone", "state", "eta"}
-info = {"0", "0.0", "LOADING", "00:00:00"}
+--info = {"0", "0.0", "LOADING", "00:00:00"}
+info = {}
 iter = 1
+--qiSlots = {}
+
+-- Number of conky iterations between each reload of queue info;
+-- use to reduce conky impact on cpu time.
+throttle = 5
+
+-- Folding@Home data retreival and info table loading algorithm;
+-- call from conky once to load data into the info table before calling
+-- the display functions for all Slots' info to be displayed.
 function conky_load_fah_queue_info()
     if conky_window == nil then
         return
     end
     
-    if iter == 5 then 
+    if iter == throttle then 
 
-	-- cmd = '{ echo "queue-info"; sleep 1; } | telnet localhost 36330'
+		-- cmd = '{ echo "queue-info"; sleep 1; } | telnet localhost 36330 | grep \'"id": "00"\''
+		
+		-- This shorter command was suggested by the post at
+		-- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
+		--cmd = 'FAHClient --send-command queue-info | grep \'"id": "01"\''
+		cmd = 'FAHClient --send-command queue-info'
+		
+		local f = assert(io.popen(cmd, 'r'))
+		local qi = assert(f:read('a'))
+		f:close()
 
-	-- A more direct info request than telnet, noted at
-	-- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
-	cmd = 'FAHClient --send-command queue-info'
-
-	local f = assert(io.popen(cmd, 'r'))
-	local qi = assert(f:read('a'))
-	f:close()
-
-	for k = 1, 4 do 
-		pattern = '"'..keys[k]..'": [^,]+,'
-		keyvalue = string.match(qi, pattern)
-		if keyvalue == nil then
-			info[k] = "-- no keyvalue --"
-		else
-			-- Get data value from combined key and value
-			-- (need ': ' to avoid picking up '"' at start of key)
-			value = string.match(keyvalue, ': "[^"]+"')
-						
-			if k > 3 then
-			    -- Time Info
-			    
-				-- Time info data are time values or labels
-
-				-- strip off garbage
-				value = string.gsub(value, ': ', '')
-				value = string.gsub(value, '"', '')
-				
-				-- append a space to enable final end-of-datum detection
-				value = value..' '
-				
-				-- TEST VALUES
-				--value = '16 hours 17 mins '
-				--value = '6 mins 17 secs '
-
-				pass = 1
-				tt = ''
-				dd = '00'
-				hh = '00'
-				mm = '00'
-				ss = '00'
-				datum = ''			
-				for v in string.gmatch(value, '.') do
-					if v ~= ' ' then
-						datum = datum..v
-					elseif pass == 2 then
-						if     datum == "days"  then dd = tt
-						elseif datum == "hours" then hh = tt
-						elseif datum == "mins"  then mm = tt
-						elseif datum == "secs"  then ss = tt
-						else   -- nop --
-						end
-						
-						datum = ''
-						pass = 1
-
-					else
-						-- % in string.match is an escape character, so '%.' is a literal dot
-						-- % in each string.format begins a conversion specification, which ends with a converison character (f or d)
-						--     (The format string follows the same rules as the ISO C function sprintf)
-						if string.match(datum, '%.') then
-							tt = string.format('%1.2f', datum)
-						else
-							tt = string.format('%02d', datum)
-						end
-						datum = ''
-						pass = 2
-					end				
-				end
-				
-				value = ''
-				if dd ~= "00" then
-					-- set symbol for "day"
-					value = dd .. "${font FreeSerif:size=11}${color}☌${color grey}${font}"
+--[[
+		for qiSlot in string.gmatch(qi,'({[^}]*})') do
+			idSlot = string.match(qiSlot,'"id": "(%d%d)"')
+			qiSlots[idSlot] = qiSlot
+		end
+		
+		idSlot = "01"
+		qiSlot = qiSlots[idSlot]
+]]	
+		
+		for qiSlot in string.gmatch(qi,'({[^}]*})') do
+			idSlot = string.match(qiSlot,'"id": "(%d%d)"')
+			
+			for k = 1, #keys do 
+				idxSlot = getidx(k,idSlot)
+				pattern = '"'..keys[k]..'": [^,]+,'
+				keyvalue = string.match(qiSlot, pattern)
+				if keyvalue == nil then
+					info[idxSlot] = "-- no keyvalue --"
 				else
-					--if hh ~= "00" then value = value..hh end
-					value = string.format( '%2.2fh', ( ( (hh*3600) + (mm*60) + ss ) / 3600) )
-					--value = value..'h'
-				
-					-- if hh ~= "00" then value = value .. hh .. 'h:' end
-					-- if dd == "00" then value = value .. mm .. 'm' end
-					-- if hh == "00" and dd == "00" then value = value .. ':' .. ss .. 's' end
+					-- Get data value from combined key and value
+					-- (need ': ' to avoid picking up '"' at start of key)
+					value = string.match(keyvalue, ': "[^"]+"')
+								
+					if keys[k] == "eta" then
+						-- Time Info
+						
+						-- Time info data are time values or labels
+
+						-- strip off garbage
+						value = string.gsub(value, ': ', '')
+						value = string.gsub(value, '"', '')
+						
+						-- append a space to enable final end-of-datum detection
+						value = value..' '
+						
+						-- TEST VALUES
+						--value = '16 hours 17 mins '
+						--value = '6 mins 17 secs '
+
+						pass = 1
+						tt = ''
+						dd = '00'
+						hh = '00'
+						mm = '00'
+						ss = '00'
+						datum = ''			
+						for v in string.gmatch(value, '.') do
+							if v ~= ' ' then
+								datum = datum..v
+							elseif pass == 2 then
+								if     datum == "days"  then dd = tt
+								elseif datum == "hours" then hh = tt
+								elseif datum == "mins"  then mm = tt
+								elseif datum == "secs"  then ss = tt
+								else   -- nop --
+								end
+								
+								datum = ''
+								pass = 1
+
+							else
+								-- % in string.match is an escape character, so '%.' is a literal dot
+								-- % in each string.format begins a conversion specification, which ends with a converison character (f or d)
+								--     (The format string follows the same rules as the ISO C function sprintf)
+								if string.match(datum, '%.') then
+									tt = string.format('%1.2f', datum)
+								else
+									tt = string.format('%02d', datum)
+								end
+								datum = ''
+								pass = 2
+							end				
+						end
+						
+						value = ''
+						if dd ~= "00" then
+							-- set symbol for "day"
+							--value = dd .. "${font FreeSerif:size=11}${color}☌${color grey}${font}"
+							value = dd .. "d"
+						else
+							--if hh ~= "00" then value = value..hh end
+							value = string.format( '%2.2fh', ( ( (hh*3600) + (mm*60) + ss ) / 3600) )
+							--value = value..'h'
+						
+							-- if hh ~= "00" then value = value .. hh .. 'h:' end
+							-- if dd == "00" then value = value .. mm .. 'm' end
+							-- if hh == "00" and dd == "00" then value = value .. ':' .. ss .. 's' end
+						end
+					
+					elseif keys[k] == "state" then
+						-- Text-Only Info
+						value = string.match(value, '%a+')
+					else
+						-- Numeric-Only Info
+						value = string.match(keyvalue, '[%d%.]+')
+					end
+					
+					if value ~= nil then
+						info[idxSlot] = value
+					else
+						info[idxSlot] = "-- no value --"
+					end
 				end
-			
-			elseif k > 2 then
-			    -- Text-Only Info
-				value = string.match(value, '%a+')
-			else
-			    -- Numeric-Only Info
-				value = string.match(keyvalue, '[%d%.]+')
-			end
-			
-			if value ~= nil then
-				info[k] = value
-			else
-				info[k] = "-- no value --"
 			end
 		end
-	end
 
-	iter = 1
+		iter = 1
     else
-	iter = iter + 1
+		iter = iter + 1
     end
 end
 
-
-function conky_fah_project()
+-------
+-- utility for calculating an offset index in the global `info` table
+function getidx(k,id)
+	-- k  = index to a key in the global `keys` table to refer to the data value to retrieve
+	-- id = ID of Slot for which to retrieve the data value
+	return tonumber(k + (#keys * id))
+end
+-------
+-- conky display functions to be called in `${lua}` objects
+function conky_fah_project(id)
     if conky_window == nil then
         return
     end
 
-    return string.format("%d", info[1])
+    return string.format("%d", info[getidx(1,id)])
 end
 
-function conky_fah_status()
+function conky_fah_status(id)
     if conky_window == nil then
         return
     end
 
-    if info[3] == "RUNNING" then
-	return percentdone()..' '..eta()
+    if info[getidx(3,id)] == "RUNNING" then
+		return percentdone(id)..' '..eta(id)
     else
-        return string.format(" Status: %s", info[3])
+        return string.format(" Status: %s", info[getidx(3,id)])
     end
 end
-
-function percentdone()
-    return string.format("%2.2f", info[2]).."%"
+-------
+-- utilities for formatting data values
+function percentdone(id)
+    return string.format("%5.2f", info[getidx(2,id)]).."%"
 end
 
-function eta()
-    return string.format("%s", info[4])
+function eta(id)
+    return string.format("%s", info[getidx(4,id)])
 end
-
+-------
