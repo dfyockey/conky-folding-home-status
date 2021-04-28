@@ -9,6 +9,8 @@ Usage:
 - For display of single slot status, add a line such as the following to
   your conky configuration file:
     ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
+- To display status for multiple slots, include a single ${lua conky_load_fah_queue_info}
+  object followed by objects needed to display the desired information for each slot.
 
 Note — To Add Other Data Values:
   1) In a terminal, run `FAHClient --send-command queue-info`
