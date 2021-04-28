@@ -8,11 +8,11 @@ Retrieves current work unit folding status information from a running Folding@Ho
 
 - Status information shown in FAHControl as...
 
-![Screenshot_2021-04-28_12-01-25.png](/home/David/tmp/Screenshot_2021-04-28_12-01-25.png)
+![Screenshot_2021-04-28_12-01-25](https://user-images.githubusercontent.com/17618397/116442074-146c6500-a820-11eb-967a-da2e12538e7f.png)
 
 ...is displayed in Conky (with blurring added for emphasis) as...
 
-![Screenshot_2021-04-28_12-02-14.png](/home/David/tmp/Screenshot_2021-04-28_12-02-14.png)
+![Screenshot_2021-04-28_12-02-14](https://user-images.githubusercontent.com/17618397/116442153-2b12bc00-a820-11eb-909e-a60cd786dffd.png)
 
 The information shown above for the workunit being processed includes project, slot id, percent done, and time remaining to complete the workunit.
 
@@ -22,7 +22,7 @@ The the suffix `d` is displayed when the remaining time is a day or more. When t
 
 If the FAHClient is paused, a status indication will be displayed with the project as...
 
-![Screenshot_2021-04-28_12-36-32.png](/home/David/tmp/Screenshot_2021-04-28_12-36-32.png)
+![Screenshot_2021-04-28_12-36-32](https://user-images.githubusercontent.com/17618397/116442189-3534ba80-a820-11eb-96ef-350440247441.png)
 
 In other situations when infomation is not currently available, other status indicators will be displayed as appropriate.
 
@@ -35,13 +35,18 @@ In other situations when infomation is not currently available, other status ind
 - Add `fahqi.lua` to a load_lua line in your .conkyrc file.
 
 - For display of single slot status, add a line such as the following to your .conkyrc file where the status information is to appear:
-  
-  > ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
+
+    ```
+    ${lua conky_load_fah_queue_info} Folding@Home Proj ${lua conky_fah_project 00} 00 ${lua_parse conky_fah_status 00}
+    ```
 
 - To display status for multiple slots, include a single `${lua conky_load_fah_queue_info}` object followed by objects needed to display the desired information for each slot, such as:
 
-`Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}`
-`             Proj: ${lua conky_fah_project 01} ${lua_parse conky_fah_status 01}`
+    ```
+    ${lua conky_load_fah_queue_info}
+    Folding@Home Proj ${lua conky_fah_project 00}: 00 ${lua_parse conky_fah_status 00}
+                 Proj ${lua conky_fah_project 01}: 01 ${lua_parse conky_fah_status 01}
+    ```
 
 **Customization:**
 
