@@ -37,15 +37,15 @@ In other situations when infomation is not currently available, other status ind
 - For display of single slot status, add a line such as the following to your .conkyrc file where the status information is to appear:
 
     ```
-    ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
+    ${lua conky_load_fah_queue_info} Folding@Home Proj ${lua conky_fah_project 00} 00 ${lua_parse conky_fah_status 00}
     ```
 
 - To display status for multiple slots, include a single `${lua conky_load_fah_queue_info}` object followed by objects needed to display the desired information for each slot, such as:
 
     ```
     ${lua conky_load_fah_queue_info}
-    Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
-                 Proj: ${lua conky_fah_project 01} ${lua_parse conky_fah_status 01}
+    Folding@Home Proj ${lua conky_fah_project 00}: 00 ${lua_parse conky_fah_status 00}
+                 Proj ${lua conky_fah_project 01}: 01 ${lua_parse conky_fah_status 01}
     ```
 
 **Customization:**
