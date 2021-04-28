@@ -40,10 +40,10 @@ In other situations when infomation is not currently available, other status ind
 
 - To display status for multiple slots, include a single `${lua conky_load_fah_queue_info}` object followed by objects needed to display the desired information for each slot, such as:
 
-```
-Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
-             Proj: ${lua conky_fah_project 01} ${lua_parse conky_fah_status 01}
-```
+    ```
+    Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
+                 Proj: ${lua conky_fah_project 01} ${lua_parse conky_fah_status 01}
+    ```
 
 **Customization:**
 
