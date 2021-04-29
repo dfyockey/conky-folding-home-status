@@ -10,13 +10,13 @@ Usage:
 - For display of single slot status, add a line such as the following to
   your conky configuration file (where '00' is the default work queue id
   when running only a single slot):
-    ${lua load_fah_queue_info} Folding@Home Proj ${lua fah_project 00}: 00 ${lua_parse fah_status 00}
+    ${lua load_fah_queue_info} Folding@Home Proj ${lua fah_project 00}: 00 ${lua fah_status 00}
 - To display status for multiple slots, include a single ${lua load_fah_queue_info}
   object followed by objects needed to display the desired information for each slot
   (where '00', '01', etc are work queue ids), such as:
-		${lua conky_load_fah_queue_info}
-		Folding@Home Proj ${lua fah_project 00}: 00 ${lua_parse fah_status 00}
-					 Proj ${lua fah_project 01}: 01 ${lua_parse fah_status 01}
+		${lua load_fah_queue_info}
+		Folding@Home Proj ${lua fah_project 00}: 00 ${lua fah_status 00}
+					 Proj ${lua fah_project 01}: 01 ${lua fah_status 01}
 					 ...
 
 To Add Other Data Values:
