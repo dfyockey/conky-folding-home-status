@@ -49,7 +49,7 @@ In other situations when infomation is not currently available, other status ind
                  ...
     ```
 
-- Additional functions `fah_pctdone` and `fah_pctleft` return integer percentage values from 0 to 100 with no other formatting. They can be used with conky objects `lua_bar` or `lua_gauge` to display the values in a bar or gauge, respectively.
+- Additional functions `fah_pctdone` and `fah_pctleft` return integer percentage values from 0 to 100 with no other formatting. As in the preceding examples, each takes a work queue id as a function parameter. They can be used with conky objects `lua_bar` or `lua_gauge` to display the values in a bar or gauge, respectively.
 
 **Customization:**
 
