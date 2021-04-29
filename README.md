@@ -34,19 +34,21 @@ In other situations when infomation is not currently available, other status ind
 
 - Add `fahqi.lua` to a load_lua line in your .conkyrc file.
 
-- For display of single slot status, add a line such as the following to your .conkyrc file where the status information is to appear:
+- For display of single slot status, add a line such as the following to your .conkyrc file (where '00' is the default work queue id when running only a single slot):
 
     ```
-    ${lua conky_load_fah_queue_info} Folding@Home Proj ${lua conky_fah_project 00} 00 ${lua_parse conky_fah_status 00}
+    ${lua load_fah_queue_info} Folding@Home Proj ${lua fah_project 00} 00 ${lua_parse fah_status 00}
     ```
 
-- To display status for multiple slots, include a single `${lua conky_load_fah_queue_info}` object followed by objects needed to display the desired information for each slot, such as:
+- To display status for multiple slots, include a single `${lua load_fah_queue_info}` object followed by objects needed to display the desired information for each slot, such as:
 
     ```
-    ${lua conky_load_fah_queue_info}
-    Folding@Home Proj ${lua conky_fah_project 00}: 00 ${lua_parse conky_fah_status 00}
-                 Proj ${lua conky_fah_project 01}: 01 ${lua_parse conky_fah_status 01}
+    ${lua load_fah_queue_info}
+    Folding@Home Proj ${lua fah_project 00}: 00 ${lua_parse fah_status 00}
+                 Proj ${lua fah_project 01}: 01 ${lua_parse fah_status 01}
     ```
+
+- Additional functions `fah_pctdone` and `fah_pctleft` return integer percentage values from 0 to 100 with no other formatting. They can be used with conky objects `lua_bar` or `lua_gauge` to display the values in a bar or gauge, respectively.
 
 **Customization:**
 

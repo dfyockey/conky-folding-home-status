@@ -5,27 +5,34 @@ Folding@Home Queue Information data parser for conky
 Usage:
 - The Folding@Home project packages should be installed and FAHClient
   running, as the script gets information from a running FAHClient instance
-- Add fahqi.lua to a load_lua line in your .conkyrc file
+- Add fahqi.lua to a load_lua line in your .conkyrc file, including the
+  full path to the file if necessary (e.g. ~/conky_scripts/fahqi.lua)
 - For display of single slot status, add a line such as the following to
-  your conky configuration file:
-    ${lua conky_load_fah_queue_info} Folding@Home Proj: ${lua conky_fah_project 00} ${lua_parse conky_fah_status 00}
-- To display status for multiple slots, include a single ${lua conky_load_fah_queue_info}
-  object followed by objects needed to display the desired information for each slot.
+  your conky configuration file (where '00' is the default work queue id
+  when running only a single slot):
+    ${lua load_fah_queue_info} Folding@Home Proj ${lua fah_project 00}: 00 ${lua_parse fah_status 00}
+- To display status for multiple slots, include a single ${lua load_fah_queue_info}
+  object followed by objects needed to display the desired information for each slot
+  (where '00', '01', etc are work queue ids), such as:
+		${lua conky_load_fah_queue_info}
+		Folding@Home Proj ${lua fah_project 00}: 00 ${lua_parse fah_status 00}
+					 Proj ${lua fah_project 01}: 01 ${lua_parse fah_status 01}
+					 ...
 
-Note — To Add Other Data Values:
+To Add Other Data Values:
   1) In a terminal, run `FAHClient --send-command queue-info`
   2) Examine the output to find the keys for values of interest
   3) Add the keys to the `keys = {...}` sequence
   4) Modify conky_load_fah_queue_info() to process the value and load it
      into the info table, as needed
-  5) Add a conky display function and/or a formatting utility function
-     for each value to be displayed, as needed
-  6) Add a `${lua <function_name>}` object for each value to be
-     displayed to the conky configuration file, as needed
-  
+  5) Add a conky display function and, if needed, one or more formatting
+     utility functions for each value to be displayed
+  6) Add a `${lua <function_name> [options]}` object for each value to be
+     displayed to the conky configuration file
+
 # MIT License
 #
-# Copyright 2020 David Yockey
+# Copyright 2020-2021 David Yockey
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files
@@ -76,15 +83,15 @@ function conky_load_fah_queue_info()
 		local qi = assert(f:read('a'))
 		f:close()
 		
-		for qiSlot in string.gmatch(qi,'({[^}]*})') do
-			idSlot = string.match(qiSlot,'"id": "(%d%d)"')
+		for qiWU in string.gmatch(qi,'({[^}]*})') do
+			idWU = string.match(qiWU,'"id": "(%d%d)"')
 			
 			for k = 1, #keys do 
-				idxSlot = getidx(k,idSlot)
+				idxWU = getidx(k,idWU)
 				pattern = '"'..keys[k]..'": [^,]+,'
-				keyvalue = string.match(qiSlot, pattern)
+				keyvalue = string.match(qiWU, pattern)
 				if keyvalue == nil then
-					info[idxSlot] = "-- no keyvalue --"
+					info[idxWU] = "-- no keyvalue --"
 				else
 					-- Get data value from combined key and value
 					-- (need ': ' to avoid picking up '"' at start of key)
@@ -155,9 +162,9 @@ function conky_load_fah_queue_info()
 					end
 					
 					if value ~= nil then
-						info[idxSlot] = value
+						info[idxWU] = value
 					else
-						info[idxSlot] = "-- no value --"
+						info[idxWU] = "-- no value --"
 					end
 				end
 			end
@@ -171,13 +178,15 @@ end
 
 -------
 -- utility for calculating an offset index in the global `info` table
+--
 function getidx(k,id)
 	-- k  = index to a key in the global `keys` table to refer to the data value to retrieve
-	-- id = ID of Slot for which to retrieve the data value
+	-- id = ID of Work Unit in the Work Queue for which to retrieve the data value
 	return tonumber(k + (#keys * id))
 end
 -------
 -- conky display functions to be called in `${lua}` objects
+--
 function conky_fah_project(id)
     if conky_window == nil then
         return
@@ -197,8 +206,17 @@ function conky_fah_status(id)
         return string.format(" Status: %s", info[getidx(3,id)])
     end
 end
+
+function conky_fah_pctdone(id)
+	return string.format("%2f", info[getidx(2,id)])
+end
+
+function conky_fah_pctleft(id)
+	return string.format("%2f", 100 - info[getidx(2,id)])
+end
 -------
 -- utilities for formatting data values
+--
 function percentdone(id)
     return string.format("%5.2f", info[getidx(2,id)]).."%"
 end
