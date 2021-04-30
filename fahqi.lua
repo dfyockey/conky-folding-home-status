@@ -218,7 +218,7 @@ end
 -- utilities for formatting data values
 --
 function percentdone(id)
-    return string.format("%5.2f", info[getidx(2,id)]).."%"
+    return string.format("%05.2f", info[getidx(2,id)]).."%"
 end
 
 function eta(id)
