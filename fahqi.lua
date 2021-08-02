@@ -79,7 +79,10 @@ function conky_load_fah_queue_info()
                         -- Conky objects can then access the info for a number of running slots simply by using 0-based indices.
                         -- Thus, when running only a single slot, data will always be at index 0 regardless of work unit id.
 
-        for qiWU in string.gmatch(qi,'({[^}]*})') do
+        for qiWU in string.gmatch(qi,'{[^}]*}') do  -- No parentheses needed here...
+                                                    -- Lua 5.3 Ref Manual, §6.4, string.gmatch (s, pattern):
+                                                    -- "If pattern specifies no captures, then the whole match is produced in each call."
+
             idWU = string.match(qiWU,'"id": "(%d%d)"')
 
             for k = 1, #keys do
