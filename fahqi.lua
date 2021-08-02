@@ -1,34 +1,26 @@
 --[[
-Folding@Home Queue Information data parser for conky
+Folding@Home Queue Information Data Parser for Conky
   - Functionally completed for single slot display on 20 October 2020
 
-Usage:
-- The Folding@Home project packages should be installed and FAHClient
-  running, as the script gets information from a running FAHClient instance
-- Add fahqi.lua to a load_lua line in your .conkyrc file, including the
-  full path to the file if necessary (e.g. ~/conky_scripts/fahqi.lua)
-- For display of single slot status, add a line such as the following to
-  your conky configuration file (where '00' is the default work queue id
-  when running only a single slot):
-    ${lua load_fah_queue_info} Folding@Home Proj ${lua fah_project 00}: 00 ${lua fah_status 00}
-- To display status for multiple slots, include a single ${lua load_fah_queue_info}
-  object followed by objects needed to display the desired information for each slot
-  (where '00', '01', etc are work queue ids), such as:
-        ${lua load_fah_queue_info}
-        Folding@Home Proj ${lua fah_project 00}: 00 ${lua fah_status 00}
-                     Proj ${lua fah_project 01}: 01 ${lua fah_status 01}
-                     ...
+Requirements:
+- Folding@Home project packages installed and FAHClient running.
 
-To Add Other Data Values:
-  1) In a terminal, run `FAHClient --send-command queue-info`
-  2) Examine the output to find the keys for values of interest
-  3) Add the keys to the `keys = {...}` sequence
-  4) Modify conky_load_fah_queue_info() to process the value and load it
-     into the info table, as needed
-  5) Add a conky display function and, if needed, one or more formatting
-     utility functions for each value to be displayed
-  6) Add a `${lua <function_name> [options]}` object for each value to be
-     displayed to the conky configuration file
+Setup in .conkyrc file:
+- Add fahqi.lua to a lua_load line in conky.config
+    - Include the full path to the file if necessary
+      (e.g. lua_load = '~/conky_scripts/fahqi.lua')
+    - To use with another Lua script simultaneously, provide a
+      space-separated list on the lua_load line
+      (e.g. lua_load = '~/conky_scripts/other.lua ~/conky_scripts/fahqi.lua')
+- Add the line
+        ${lua load_fah_queue_info}
+  to conky.text.
+- Following that line, add a number of lines equal to the number of
+  running slots to display the loaded data; for example:
+        F@H Proj ${lua fah_project 0} ${lua fah_status 0}
+        F@H Proj ${lua fah_project 1} ${lua fah_status 1}
+          ...
+        F@H Proj ${lua fah_project n} ${lua fah_status n}
 
 # MIT License
 #
@@ -83,11 +75,15 @@ function conky_load_fah_queue_info()
         local qi = assert(f:read('a'))
         f:close()
 
+        infoRow = 0;    -- Used as an index to the info table so rows are indexed starting at 0 rather than by work unit id.
+                        -- Conky objects can then access the info for a number of running slots simply by using 0-based indices.
+                        -- Thus, when running only a single slot, data will always be at index 0 regardless of work unit id.
+
         for qiWU in string.gmatch(qi,'({[^}]*})') do
             idWU = string.match(qiWU,'"id": "(%d%d)"')
 
             for k = 1, #keys do
-                idxWU = getidx(k,idWU)
+                idxWU = getidx(k,infoRow)
                 pattern = '"'..keys[k]..'": [^,]+,'
                 keyvalue = string.match(qiWU, pattern)
                 if keyvalue == nil then
@@ -168,6 +164,8 @@ function conky_load_fah_queue_info()
                     end
                 end
             end
+
+            infoRow = infoRow + 1
         end
 
         iter = 1
