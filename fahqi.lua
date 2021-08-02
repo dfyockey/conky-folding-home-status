@@ -14,10 +14,10 @@ Usage:
 - To display status for multiple slots, include a single ${lua load_fah_queue_info}
   object followed by objects needed to display the desired information for each slot
   (where '00', '01', etc are work queue ids), such as:
-		${lua load_fah_queue_info}
-		Folding@Home Proj ${lua fah_project 00}: 00 ${lua fah_status 00}
-					 Proj ${lua fah_project 01}: 01 ${lua fah_status 01}
-					 ...
+        ${lua load_fah_queue_info}
+        Folding@Home Proj ${lua fah_project 00}: 00 ${lua fah_status 00}
+                     Proj ${lua fah_project 01}: 01 ${lua fah_status 01}
+                     ...
 
 To Add Other Data Values:
   1) In a terminal, run `FAHClient --send-command queue-info`
@@ -75,104 +75,104 @@ function conky_load_fah_queue_info()
     end
     
     if iter == throttle then 
-		-- The following command, obviating need for use of telnet, was suggested by the post at
-		-- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
-		cmd = 'FAHClient --send-command queue-info'
-		
-		local f = assert(io.popen(cmd, 'r'))
-		local qi = assert(f:read('a'))
-		f:close()
-		
-		for qiWU in string.gmatch(qi,'({[^}]*})') do
-			idWU = string.match(qiWU,'"id": "(%d%d)"')
-			
-			for k = 1, #keys do 
-				idxWU = getidx(k,idWU)
-				pattern = '"'..keys[k]..'": [^,]+,'
-				keyvalue = string.match(qiWU, pattern)
-				if keyvalue == nil then
-					info[idxWU] = "-- no keyvalue --"
-				else
-					-- Get data value from combined key and value
-					-- (need ': ' to avoid picking up '"' at start of key)
-					value = string.match(keyvalue, ': "[^"]+"')
-								
-					if keys[k] == "eta" then
-						-- strip off garbage
-						value = string.gsub(value, ': ', '')
-						value = string.gsub(value, '"', '')
-						
-						-- append a space to enable final end-of-datum detection
-						value = value..' '
-						
-						-- TEST VALUES
-						--value = '16 hours 17 mins '
-						--value = '6 mins 17 secs '
+        -- The following command, obviating need for use of telnet, was suggested by the post at
+        -- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
+        cmd = 'FAHClient --send-command queue-info'
 
-						pass = 1
-						tt = ''
-						dd = '00'
-						hh = '00'
-						mm = '00'
-						ss = '00'
-						datum = ''			
-						for v in string.gmatch(value, '.') do
-							if v ~= ' ' then
-								datum = datum..v
-							elseif pass == 2 then
-								if     datum == "days"  then dd = tt
-								elseif datum == "hours" then hh = tt
-								elseif datum == "mins"  then mm = tt
-								elseif datum == "secs"  then ss = tt
-								else   -- nop --
-								end
-								
-								datum = ''
-								pass = 1
+        local f = assert(io.popen(cmd, 'r'))
+        local qi = assert(f:read('a'))
+        f:close()
 
-							else
-								-- % in string.match is an escape character, so '%.' is a literal dot
-								--
-								-- % in each string.format begins a conversion specification, which ends with a converison character (f or d)
-								---- The string.format format string follows the same rules as the ISO C sprintf function
-								if string.match(datum, '%.') then
-									tt = string.format('%1.2f', datum)
-								else
-									tt = string.format('%02d', datum)
-								end
-								datum = ''
-								pass = 2
-							end				
-						end
-						
-						value = ''
-						if dd ~= "00" then
-							-- set symbol for "day"
-							value = dd .. "d"
-						else
-							value = string.format( '%2.2fh', ( ( (hh*3600) + (mm*60) + ss ) / 3600) )
-						end
-					
-					elseif keys[k] == "state" then
-						-- Text-Only Info
-						value = string.match(value, '%a+')
-					else
-						-- Numeric-Only Info
-						value = string.match(keyvalue, '[%d%.]+')
-					end
-					
-					if value ~= nil then
-						info[idxWU] = value
-					else
-						info[idxWU] = "-- no value --"
-					end
-				end
-			end
-		end
+        for qiWU in string.gmatch(qi,'({[^}]*})') do
+            idWU = string.match(qiWU,'"id": "(%d%d)"')
 
-		iter = 1
+            for k = 1, #keys do
+                idxWU = getidx(k,idWU)
+                pattern = '"'..keys[k]..'": [^,]+,'
+                keyvalue = string.match(qiWU, pattern)
+                if keyvalue == nil then
+                    info[idxWU] = "-- no keyvalue --"
+                else
+                    -- Get data value from combined key and value
+                    -- (need ': ' to avoid picking up '"' at start of key)
+                    value = string.match(keyvalue, ': "[^"]+"')
+
+                    if keys[k] == "eta" then
+                        -- strip off garbage
+                        value = string.gsub(value, ': ', '')
+                        value = string.gsub(value, '"', '')
+
+                        -- append a space to enable final end-of-datum detection
+                        value = value..' '
+
+                        -- TEST VALUES
+                        --value = '16 hours 17 mins '
+                        --value = '6 mins 17 secs '
+
+                        pass = 1
+                        tt = ''
+                        dd = '00'
+                        hh = '00'
+                        mm = '00'
+                        ss = '00'
+                        datum = ''
+                        for v in string.gmatch(value, '.') do
+                            if v ~= ' ' then
+                                datum = datum..v
+                            elseif pass == 2 then
+                                if     datum == "days"  then dd = tt
+                                elseif datum == "hours" then hh = tt
+                                elseif datum == "mins"  then mm = tt
+                                elseif datum == "secs"  then ss = tt
+                                else   -- nop --
+                                end
+
+                                datum = ''
+                                pass = 1
+
+                            else
+                                -- % in string.match is an escape character, so '%.' is a literal dot
+                                --
+                                -- % in each string.format begins a conversion specification, which ends with a converison character (f or d)
+                                ---- The string.format format string follows the same rules as the ISO C sprintf function
+                                if string.match(datum, '%.') then
+                                    tt = string.format('%1.2f', datum)
+                                else
+                                    tt = string.format('%02d', datum)
+                                end
+                                datum = ''
+                                pass = 2
+                            end
+                        end
+
+                        value = ''
+                        if dd ~= "00" then
+                            -- set symbol for "day"
+                            value = dd .. "d"
+                        else
+                            value = string.format( '%2.2fh', ( ( (hh*3600) + (mm*60) + ss ) / 3600) )
+                        end
+
+                    elseif keys[k] == "state" then
+                        -- Text-Only Info
+                        value = string.match(value, '%a+')
+                    else
+                        -- Numeric-Only Info
+                        value = string.match(keyvalue, '[%d%.]+')
+                    end
+
+                    if value ~= nil then
+                        info[idxWU] = value
+                    else
+                        info[idxWU] = "-- no value --"
+                    end
+                end
+            end
+        end
+
+        iter = 1
     else
-		iter = iter + 1
+        iter = iter + 1
     end
 end
 
@@ -180,9 +180,9 @@ end
 -- utility for calculating an offset index in the global `info` table
 --
 function getidx(k,id)
-	-- k  = index to a key in the global `keys` table to refer to the data value to retrieve
-	-- id = ID of Work Unit in the Work Queue for which to retrieve the data value
-	return tonumber(k + (#keys * id))
+    -- k  = index to a key in the global `keys` table to refer to the data value to retrieve
+    -- id = ID of Work Unit in the Work Queue for which to retrieve the data value
+    return tonumber(k + (#keys * id))
 end
 -------
 -- conky display functions to be called in `${lua}` objects
@@ -201,18 +201,18 @@ function conky_fah_status(id)
     end
 
     if info[getidx(3,id)] == "RUNNING" then
-		return percentdone(id)..' '..eta(id)
+        return percentdone(id)..' '..eta(id)
     else
         return string.format(" Status: %s", info[getidx(3,id)])
     end
 end
 
 function conky_fah_pctdone(id)
-	return string.format("%2f", info[getidx(2,id)])
+    return string.format("%2f", info[getidx(2,id)])
 end
 
 function conky_fah_pctleft(id)
-	return string.format("%2f", 100 - info[getidx(2,id)])
+    return string.format("%2f", 100 - info[getidx(2,id)])
 end
 -------
 -- utilities for formatting data values
