@@ -9,11 +9,11 @@ client and makes that information available for display in Conky.
 
 Status information shown in FAHControl...
 
-_insert pic here_
+![Image of FAHClient](https://raw.githubusercontent.com/dfyockey/conky-FoldingAtHome-status/main/.github/images/FAHClient.png)
 
 ...can be displayed in Conky as
 
-_insert pic here_
+![Image of conky display](https://raw.githubusercontent.com/dfyockey/conky-FoldingAtHome-status/main/.github/images/conkydisplay.png)
 
 ### Usage
 
