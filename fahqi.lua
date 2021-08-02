@@ -62,10 +62,6 @@ throttle = 5
 -- call from conky once to load data into the info table before calling
 -- the display functions for all Slots' info to be displayed.
 function conky_load_fah_queue_info()
-    if conky_window == nil then
-        return
-    end
-    
     if iter == throttle then 
         -- The following command, obviating need for use of telnet, was suggested by the post at
         -- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
@@ -189,18 +185,10 @@ end
 -- conky display functions to be called in `${lua}` objects
 --
 function conky_fah_project(id)
-    if conky_window == nil then
-        return
-    end
-
     return string.format("%d", info[getidx(1,id)])
 end
 
 function conky_fah_status(id)
-    if conky_window == nil then
-        return
-    end
-
     if info[getidx(3,id)] == "RUNNING" then
         return percentdone(id)..' '..eta(id)
     else
@@ -208,15 +196,15 @@ function conky_fah_status(id)
     end
 end
 
-function conky_fah_pctdone(id)
+function conky_fah_pctdone(id)  -- useful for ascending bar or gauge
     return string.format("%2f", info[getidx(2,id)])
 end
 
-function conky_fah_pctleft(id)
+function conky_fah_pctleft(id)  -- useful for decending bar or gauge
     return string.format("%2f", 100 - info[getidx(2,id)])
 end
 -------
--- utilities for formatting data values
+-- utilities for formatting data values (could be called in `${lua}` objects)
 --
 function percentdone(id)
     return string.format("%05.2f", info[getidx(2,id)]).."%"
