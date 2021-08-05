@@ -50,13 +50,14 @@ Setup in .conkyrc file:
   Based on code from https://stackoverflow.com/a/326715/8100489 and information
   at https://github.com/FoldingAtHome/fah-control/wiki/3rd-party-FAHClient-API.
 --]]
-keys = {"project", "percentdone", "state", "eta"}
+keys = {"project", "percentdone", "state", "eta", "id"}
 info = {}
 iter = 1
 
 -- Number of conky iterations between each reload of queue info;
 -- use to reduce conky impact on cpu time.
 throttle = 5
+
 
 -- Folding@Home data retreival and info table loading algorithm;
 -- call from conky once to load data into the info table before calling
@@ -71,7 +72,7 @@ function conky_load_fah_queue_info()
         local qi = assert(f:read('a'))
         f:close()
 
-        infoRow = 0;    -- Used as an index to the info table so rows are indexed starting at 0 rather than by work unit id.
+        infoRow = 0     -- Used as an index to the info table so rows are indexed starting at 0 rather than by work unit id.
                         -- Conky objects can then access the info for a number of running slots simply by using 0-based indices.
                         -- Thus, when running only a single slot, data will always be at index 0 regardless of work unit id.
 
@@ -167,6 +168,8 @@ function conky_load_fah_queue_info()
             infoRow = infoRow + 1
         end
 
+        bubblesortInfo("id")
+        bubblesortInfo("state")
         iter = 1
     else
         iter = iter + 1
@@ -174,13 +177,55 @@ function conky_load_fah_queue_info()
 end
 
 -------
--- utility for calculating an offset index in the global `info` table
+-- Utilities
 --
-function getidx(k,id)
-    -- k  = index to a key in the global `keys` table to refer to the data value to retrieve
-    -- id = ID of Work Unit in the Work Queue for which to retrieve the data value
-    return tonumber(k + (#keys * id))
+function getidx(k,row)      -- Calculates an offset index in the global `info` table
+    -- k   = index to a key in the global `keys` table referring to the data value to retrieve
+    -- row = 0-based index to the row in the `info` table from which to retrieve the data value
+    return tonumber(k + (#keys * row))
 end
+
+function getkeyidx(key)     -- Finds the index in the keys table for a given key
+    local k
+    for k = 1, #keys do
+        if key == keys[k] then
+            return k
+        end
+    end
+    return 0
+end
+
+function swapRows (rowa, rowb)
+    local k, temp
+    for k = 1, #keys do
+        temp = info[getidx(k,rowa)]
+        info[getidx(k,rowa)] = info[getidx(k,rowb)]
+        info[getidx(k,rowb)] = temp
+    end
+end
+
+function bubblesortInfo (key)  -- Sort table info rows by Work Queue id
+    local i, j
+    local n = #info // 5    -- n = number of rows in table info
+    local k = getkeyidx(key)
+    
+    -- Have to use -2 rather than the -1 in a standard bubblesort since
+    -- the loops need to continue while the loop value is less than n-1,
+    -- but a Lua 'for' loop just provides a simple stepped count and
+    -- lacks an iterative evaluation as in C/C++ and the like.
+    for i = 0, n-2 do
+        for j = 0, n-i-2 do
+            if (key == "id" and info[getidx(k,j)] > info[getidx(k,j+1)]) or (key == "state" and info[getidx(k,j)] ~= "RUNNING" and info[getidx(k,j+1)] == "RUNNING") then
+                swapRows(j,j+1)
+            end
+        end
+    end
+end
+
+
+--- IN THE FOLLOWING, `id` VARIABLES NEED TO BE CHANGED TO `row` TO REDUCE CONFUSION!!!
+--- (Seems a trivial fix, but best to wait til things are working right to avoid possibly mucking things up)
+
 -------
 -- conky display functions to be called in `${lua}` objects
 --
@@ -212,5 +257,9 @@ end
 
 function eta(id)
     return string.format("%s", info[getidx(4,id)])
+end
+
+function conky_fah_id(row)
+    return string.format("%s", info[getidx(5,row)])
 end
 -------
