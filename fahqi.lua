@@ -228,13 +228,14 @@ end
 -------
 -- conky display functions to be called in `${lua}` objects
 --
+
 function conky_fah_project(row)
     return string.format("%d", info[getidx(1,row)])
 end
 
 function conky_fah_status(row)
     if info[getidx(3,row)] == "RUNNING" then
-        return percentdone(row)..' '..eta(row)
+        return conky_fah_percentdone(row).."% "..conky_fah_eta(row)
     else
         return string.format(" Status: %s", info[getidx(3,row)])
     end
@@ -248,18 +249,20 @@ function conky_fah_pctleft(row)  -- useful for decending bar or gauge
     return string.format("%2f", 100 - info[getidx(2,row)])
 end
 
--------
--- utilities for formatting data values (could be called in `${lua}` objects)
---
-function percentdone(row)
-    return string.format("%05.2f", info[getidx(2,row)]).."%"
-end
-
-function eta(row)
-    return string.format("%s", info[getidx(4,row)])
-end
-
 function conky_fah_id(row)
     return string.format("%s", info[getidx(5,row)])
 end
+
+-------
+-- utilities for formatting data values (could be called in `${lua}` objects)
+--
+
+function conky_fah_percentdone(row)
+    return string.format("%05.2f", info[getidx(2,row)])
+end
+
+function conky_fah_eta(row)
+    return string.format("%s", info[getidx(4,row)])
+end
+
 -------
