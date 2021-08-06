@@ -132,7 +132,7 @@ function conky_load_fah_queue_info()
                                 -- % in each string.format begins a conversion specification, which ends with a converison character (f or d)
                                 ---- The string.format format string follows the same rules as the ISO C sprintf function
                                 if string.match(datum, '%.') then
-                                    tt = string.format('%1.2f', datum)
+                                    tt = string.format('%5.2f', datum)
                                 else
                                     tt = string.format('%02d', datum)
                                 end
@@ -146,7 +146,7 @@ function conky_load_fah_queue_info()
                             -- set symbol for "day"
                             value = dd .. "d"
                         else
-                            value = string.format( '%2.2fh', ( ( (hh*3600) + (mm*60) + ss ) / 3600) )
+                            value = string.format( '%5.2fh', ( ( (hh*3600) + (mm*60) + ss ) / 3600) )
                         end
 
                     elseif keys[k] == "state" then
@@ -154,6 +154,9 @@ function conky_load_fah_queue_info()
                         value = string.match(value, '%a+')
                     else
                         -- Numeric-Only Info
+                        --      Note that id values and project values are assumed to be two and five digits, respectively.
+                        --      This may change in the future. The percentdone values are formatted for output by
+                        --      'function percentdone' below, so there's no worries about that.
                         value = string.match(keyvalue, '[%d%.]+')
                     end
 
