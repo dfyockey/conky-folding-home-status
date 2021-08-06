@@ -37,9 +37,20 @@ Make the following changes to your .conkyrc file:
           ...
         F@H Proj ${lua fah_project n} ${lua fah_status n}
         ```
-        
-    - Additional functions `fah_pctdone` and `fah_pctleft` return integer
-      percentage values from 0 to 100 with no other formatting. As in the
-      preceding examples, each takes a 0-based index as a function
-      parameter. They can be used with conky objects `lua_bar` or
-      `lua_gauge` to display the values in a bar or gauge, respectively.
+
+### Functions available for use in Conky
+
+<table>
+<thead>
+<tr><th style="text-align:left">Function</th><th style="text-align:left">Returns</th></tr>
+</thead>
+<tbody>
+<tr><td>fah_eta (index)</td><td>Eta to completion as a floating-point fraction of days or hours</td></tr>
+<tr><td>fah_id (index)</td><td>Work Queue ID of the status data referred to be index</td></tr>
+<tr><td>fah_percentdone (index)</td><td>Floating-point percentage-done value</td></tr>
+<tr><td>fah_pctdone (index)</td><td>Two-digit percentage-done value useful for an ascending bar or gauge</td></tr>
+<tr><td>fah_pctleft (index)</td><td>Two-digit percentage-left value useful for an descending bar or gauge</td></tr>
+<tr><td>fah_project (index)</td><td>Project number</td></tr>
+<tr><td>fah_status (index)</td><td>Formatted percentage done and eta to completion</td></tr>
+</tbody>
+</table>
