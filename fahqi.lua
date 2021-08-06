@@ -225,41 +225,38 @@ function bubblesortInfo (key)  -- Sort table info rows by Work Queue id
     end
 end
 
-
---- IN THE FOLLOWING, `id` VARIABLES NEED TO BE CHANGED TO `row` TO REDUCE CONFUSION!!!
---- (Seems a trivial fix, but best to wait til things are working right to avoid possibly mucking things up)
-
 -------
 -- conky display functions to be called in `${lua}` objects
 --
-function conky_fah_project(id)
-    return string.format("%d", info[getidx(1,id)])
+function conky_fah_project(row)
+    return string.format("%d", info[getidx(1,row)])
 end
 
-function conky_fah_status(id)
-    if info[getidx(3,id)] == "RUNNING" then
-        return percentdone(id)..' '..eta(id)
+function conky_fah_status(row)
+    if info[getidx(3,row)] == "RUNNING" then
+        return percentdone(row)..' '..eta(row)
     else
-        return string.format(" Status: %s", info[getidx(3,id)])
+        return string.format(" Status: %s", info[getidx(3,row)])
     end
 end
 
-function conky_fah_pctdone(id)  -- useful for ascending bar or gauge
-    return string.format("%2f", info[getidx(2,id)])
+function conky_fah_pctdone(row)  -- useful for ascending bar or gauge
+    return string.format("%2f", info[getidx(2,row)])
 end
 
-function conky_fah_pctleft(id)  -- useful for decending bar or gauge
-    return string.format("%2f", 100 - info[getidx(2,id)])
+function conky_fah_pctleft(row)  -- useful for decending bar or gauge
+    return string.format("%2f", 100 - info[getidx(2,row)])
 end
+
 -------
 -- utilities for formatting data values (could be called in `${lua}` objects)
 --
-function percentdone(id)
-    return string.format("%05.2f", info[getidx(2,id)]).."%"
+function percentdone(row)
+    return string.format("%05.2f", info[getidx(2,row)]).."%"
 end
 
-function eta(id)
-    return string.format("%s", info[getidx(4,id)])
+function eta(row)
+    return string.format("%s", info[getidx(4,row)])
 end
 
 function conky_fah_id(row)
