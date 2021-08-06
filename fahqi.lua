@@ -46,18 +46,28 @@ Setup in .conkyrc file:
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
---[[
-  Based on code from https://stackoverflow.com/a/326715/8100489 and information
-  at https://github.com/FoldingAtHome/fah-control/wiki/3rd-party-FAHClient-API.
---]]
 keys = {"project", "percentdone", "state", "eta", "id"}
+
+--[[
+  Inverse index for quick key-to-index retreival.
+  (Note: in table keys, the 'keys' are the values.)
+  From https://stackoverflow.com/a/38283667.
+--]]
+local kindex={}
+for k,v in pairs(keys) do
+   kindex[v]=k
+end
+
+-- Note: While Lua tables are 1-based, table info is used as a 2D array
+-- with 0-based rows. The 0-based row index is used by functions getidx
+-- and getidx2 to calculate the index to a particular value in table info.
 info = {}
+
 iter = 1
 
 -- Number of conky iterations between each reload of queue info;
 -- use to reduce conky impact on cpu time.
 throttle = 5
-
 
 -- Folding@Home data retreival and info table loading algorithm;
 -- call from conky once to load data into the info table before calling
@@ -68,6 +78,10 @@ function conky_load_fah_queue_info()
         -- https://foldingforum.org/viewtopic.php?f=88&t=25050&p=249988&hilit=conky#p250414
         cmd = 'FAHClient --send-command queue-info'
 
+        --[[
+          The following is based on code from https://stackoverflow.com/a/326715.
+          I could find no reason for the f:read argument's '*' in the code at the noted site.
+        --]]
         local f = assert(io.popen(cmd, 'r'))
         local qi = assert(f:read('a'))
         f:close()
@@ -182,23 +196,25 @@ end
 -------
 -- Utilities
 --
-function getidx(k,row)      -- Calculates an offset index in the global `info` table
+
+-- Functions getidx and getidx2 each calculate the same value:
+--      an offset index to a value in the global `info` table.
+-- The primary purpose of getidx2 is to
+--      eliminate "magic numbers" in the code.
+function getidx(k, row)
     -- k   = index to a key in the global `keys` table referring to the data value to retrieve
     -- row = 0-based index to the row in the `info` table from which to retrieve the data value
     return tonumber(k + (#keys * row))
 end
-
-function getkeyidx(key)     -- Finds the index in the keys table for a given key
-    local k
-    for k = 1, #keys do
-        if key == keys[k] then
-            return k
-        end
-    end
-    return 0
+--
+function getidx2(key, row)
+    -- key = a key listed in the global `keys` table referring to the data value to retrieve
+    -- row = 0-based index to the row in the `info` table from which to retrieve the data value
+    return tonumber(kindex[key] + (#keys * row))
 end
+--
 
-function swapRows (rowa, rowb)
+function swapRows(rowa, rowb)
     local k, temp
     for k = 1, #keys do
         temp = info[getidx(k,rowa)]
@@ -207,10 +223,10 @@ function swapRows (rowa, rowb)
     end
 end
 
-function bubblesortInfo (key)  -- Sort table info rows by Work Queue id
+function bubblesortInfo(key)    -- Sort table info rows by Work Queue id
     local i, j
-    local n = #info // 5    -- n = number of rows in table info
-    local k = getkeyidx(key)
+    local n = #info // #keys    -- n = number of rows in table info
+    local k = kindex[key]
     
     -- Have to use -2 rather than the -1 in a standard bubblesort since
     -- the loops need to continue while the loop value is less than n-1,
@@ -230,27 +246,27 @@ end
 --
 
 function conky_fah_project(row)
-    return string.format("%d", info[getidx(1,row)])
+    return string.format("%d", info[getidx2("project",row)])
 end
 
 function conky_fah_status(row)
-    if info[getidx(3,row)] == "RUNNING" then
+    if info[getidx2("state",row)] == "RUNNING" then
         return conky_fah_percentdone(row).."% "..conky_fah_eta(row)
     else
-        return string.format(" Status: %s", info[getidx(3,row)])
+        return string.format(" Status: %s", info[getidx2("state",row)])
     end
 end
 
 function conky_fah_pctdone(row)  -- useful for ascending bar or gauge
-    return string.format("%2f", info[getidx(2,row)])
+    return string.format("%2f", info[getidx2("percentdone",row)])
 end
 
 function conky_fah_pctleft(row)  -- useful for decending bar or gauge
-    return string.format("%2f", 100 - info[getidx(2,row)])
+    return string.format("%2f", 100 - info[getidx2("percentdone",row)])
 end
 
 function conky_fah_id(row)
-    return string.format("%s", info[getidx(5,row)])
+    return string.format("%s", info[getidx2("id",row)])
 end
 
 -------
@@ -258,11 +274,11 @@ end
 --
 
 function conky_fah_percentdone(row)
-    return string.format("%05.2f", info[getidx(2,row)])
+    return string.format("%05.2f", info[getidx2("percentdone",row)])
 end
 
 function conky_fah_eta(row)
-    return string.format("%s", info[getidx(4,row)])
+    return string.format("%s", info[getidx2("eta",row)])
 end
 
 -------
