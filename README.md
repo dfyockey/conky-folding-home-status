@@ -38,7 +38,13 @@ Make the following changes to your .conkyrc file:
         F@H Proj ${lua fah_project n} ${lua fah_status n}
         ```
 
+### Notes
+
+* To stop conky from inserting a blank line above the first line in **Usage** step 3, you can add `${lua load_fah_queue_info}` in step 2 on the first line in step 3 before any script function calls instead of adding it on its own line.
+* To set the frequency of updating the Folding@Home information, you can change the `throttle` value on line 68 of the script in file `fahqi.lua`. The default value is set to `5` so that the Folding@Home information will be updated once for every five conky updates, i.e. every 5th conky update.
+
 ### Functions available for use in Conky
+(where `index` is a number from 0 thru n referring to a running slot)
 
 <table>
 <thead>

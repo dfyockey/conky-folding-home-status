@@ -63,11 +63,13 @@ end
 -- and getidx2 to calculate the index to a particular value in table info.
 info = {}
 
-iter = 1
-
--- Number of conky iterations between each reload of queue info;
--- use to reduce conky impact on cpu time.
+-- Set throttle to a number n, where the queue info will be reloaded
+-- every nth conky update iteration; use to reduce conky impact on cpu time.
 throttle = 5
+
+-- Set iter equal to throttle to insure that FAH data is loaded into the
+-- info table before being read out in function calls from conky objects.
+iter = throttle
 
 -- Folding@Home data retreival and info table loading algorithm;
 -- call from conky once to load data into the info table before calling
