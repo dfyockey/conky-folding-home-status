@@ -193,6 +193,7 @@ function conky_load_fah_queue_info()
     else
         iter = iter + 1
     end
+    return ""
 end
 
 -------
